@@ -5,11 +5,7 @@ on:
       branches:
         - main
         - stage
-    pull_request:
-      branches:
-        - main
-        - stage
-        
+
 jobs:
   show-ref-name:
     runs-on: ubuntu-latest
