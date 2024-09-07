@@ -57,7 +57,7 @@ permissions:
 
 jobs:
   terraform:
-    name: 'Terraform for environment ${{ github.ref_name }}'
+    name: 'Terraform: ${{ github.ref_name }}'
     runs-on: ubuntu-latest
     if: github.ref_name == 'main' || github.ref_name == 'stage'
 
