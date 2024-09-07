@@ -44,35 +44,45 @@
 
 name: 'Terraform'
 
+# Do not run when PR is created - only after it is merged into one of these branches
+# main branch is prod
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
+    branches:
+      - main
+      - stage
 
 permissions:
   contents: read
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Terraform for stage ${{ github.ref_name }}'
     runs-on: ubuntu-latest
-    environment: production
+    if: github.ref_name == 'main' || github.ref_name == 'stage'
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
+        working-directory: ./terraform
 
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      uses: hashicorp/setup-terraform@v3
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
@@ -82,12 +92,24 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check
 
+    # Check that terraform workspaces exist. If not, then create them
+    # (consider replacing the workspace based environment logic with Terragrunt later)
+    - name: Ensure workspace exists for this branch (for this environment)
+      run: |
+        if ! terraform workspace list | grep -q "${{ github.ref_name }}"; then
+          terraform workspace new "${{ github.ref_name }}"
+        fi
+
+    # Checks select the appropriate workspace - ensures separate state files for each env
+    - name: Terraform Workspace
+      run: terraform workspace select ${{ github.ref_name }}
+
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-      run: terraform plan -input=false
+      run: terraform plan -var-file=environment/${{ github.ref_name }}.tfvars
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      if: github.event_name == 'push'
+      run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars

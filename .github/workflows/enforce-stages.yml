@@ -1,0 +1,24 @@
+# This GitHub action enforces that only merges from previous stage will be accepted to next stage
+# for example: only merges from stage will be accepted into main (prod)
+
+name: Enforce Stages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  restrict_merge:
+    name: Restrict merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR is not from stage
+        if: github.base_ref == 'main' && github.head_ref != 'stage'
+        run: |
+          echo "Error: Pull request to main must come from the stage branch."
+          echo "This pull request is from ${{ github.head_ref }}"
+          exit 1
