@@ -1,0 +1,97 @@
+# VPC and Subnets
+# TODO: Dynamically determine AZs since a, b, c are not always available in all Regions
+#azs            = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+data "aws_availability_zones" "available" {}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.13.0"
+
+  name           = "my-vpc"
+  cidr            = "10.0.0.0/16"
+  azs             = slice(data.aws_availability_zones.available.names, 0, 3)
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
+  enable_dns_hostnames = true
+
+}
+
+# Security Group for EKS Cluster
+resource "aws_security_group" "eks_security_group" {
+  name   = "eks_security_group"
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Adjust based on security needs
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# EKS Cluster
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  version         = "20.24.0"
+  cluster_name    = var.eks_cluster_name
+  cluster_version = "1.30"
+
+  subnet_ids                      = module.vpc.private_subnets
+  vpc_id                          = module.vpc.vpc_id
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = false
+
+  # Cluster access entry
+  # To add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
+
+  # Node group configuration
+  eks_managed_node_groups = {
+    managed_nodes = {
+      name             = "managed-eks-nodes"
+      instance_type    = var.instance_type
+      desired_capacity = 3
+      max_capacity     = 5
+      min_capacity     = 1
+    }
+  }
+}
+
+# IAM Role for EKS Cluster
+resource "aws_iam_role" "eks_role" {
+  name = "eks-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_AmazonEKSServicePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+  role       = aws_iam_role.eks_role.name
+}
