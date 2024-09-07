@@ -94,16 +94,10 @@ jobs:
 
     # Check that terraform workspaces exist. If not, then create them
     # (consider replacing the workspace based environment logic with Terragrunt later)
-    - name: Ensure workspace "main" exists
+    - name: Ensure workspace exists for this branch (for this environment)
       run: |
-        if ! terraform workspace list | grep -q "main"; then
-          terraform workspace new main
-        fi
-
-    - name: Ensure workspace "stage" exists
-      run: |
-        if ! terraform workspace list | grep -q "stage"; then
-          terraform workspace new stage
+        if ! terraform workspace list | grep -q "${{ github.ref_name }}"; then
+          terraform workspace new "${{ github.ref_name }}"
         fi
 
     # Checks select the appropriate workspace - ensures separate state files for each env
