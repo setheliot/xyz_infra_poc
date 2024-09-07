@@ -19,4 +19,5 @@ jobs:
         if: github.base_ref == 'main' && github.head_ref != 'stage'
         run: |
           echo "Error: Pull request to main must come from the stage branch."
+          echo "This pull request is from {{ $github.head_ref }}"
           exit 1
