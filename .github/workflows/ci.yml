@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Environment Tests
 
 on:
   push:
@@ -18,6 +18,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Run a simple command
-      run: echo "Status check placeholder"
+    # This is where tests can be added for each commit
+    - name: Run tests
+      run: echo "Test placeholder"
 
+    # Different environments (stage, prod, etc) would also have some tests
+    # specific to that environment. Those should go in another workflow
+    # triggered by the specific branch for the environment in question
