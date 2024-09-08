@@ -61,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref_name == 'main' || github.ref_name == 'stage'
 
+    environment: ${{ github.ref_name == 'stage' && 'stage' || github.ref_name == 'main' && 'prod' || 'unknown' }}
+
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
