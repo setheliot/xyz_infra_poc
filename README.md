@@ -43,14 +43,14 @@ Developers create their own `dev` branches to work in (using their own accounts 
 Three GitHub actions workflows are defined:
 
 - **Terraform** ([`terraform.yml`](.github/workflows/terraform.yml)) initializes and provisions the infrastructure defined in the configuration files for the `stage` and `prod` environments.
-- **Enforce Stages** ([`enforce-stages.yml`](.github/workflows/enforce-stages.yml)) enforces the order in which changes flow through the environments in the pipeline. Currently with only the two environments, it enforces that `prod` will only accept merges from `stage`. It also checks that all tests in the previous environment have passed before accepting the merge.
+- **Enforce Flow** ([`enforce-flow.yml`](.github/workflows/enforce-flow.yml)) enforces the order in which changes flow through the environments in the pipeline. Currently with only the two environments, it enforces that `prod` will only accept merges from `stage`. It also checks that all tests in the previous environment have passed before accepting the merge.
 - **Environment Tests** ([`ci.yml`](.github/workflows/ci.yml)) runs tests applicable to _every_ environment. The workflow exists as a placeholder to add future tests. Note: **Stage Tests** and **Prod Tests** workflows can similarly be created for tests that only apply to a specific environment.
 
 The following GitHub rules are enforced on branches `stage` (staging) and `main` (production)
 - **Require approvals**: Requires at least one code review with resolution before merging.
 - **Require a pull request before merging**: Require all commits be made to a non-target branch and submitted via a pull request before they can be merged.
 - **Require stats checks to pass**:
-  - Checks **Enforce Stages** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
+  - Checks **Enforce Flow** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
   - Checks **Environment Tests** to ensure all environment tests pass on the  current environment.
 
 ## How to use

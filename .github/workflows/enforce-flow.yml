@@ -1,21 +1,29 @@
-# This GitHub action enforces that only merges from previous stage will be accepted to next stage
+# This GitHub action enforces that only merges from previous env will be accepted to next env
 # for example: only merges from stage will be accepted into main (prod)
 
-name: Enforce Stages
+name: Enforce Flow
 
 on:
   push:
     branches:
       - main
+      - stage
   pull_request:
     branches:
       - main
+      - stage
 
 jobs:
-  restrict_merge:
-    name: Restrict merge
+  enforce_flow:
+    name: Enforce Flow
     runs-on: ubuntu-latest
     steps:
+      # This is where we would add a check for merging into stage if we add an environment before stage
+      - name: No need to check if merging into stage
+        if: github.base_ref == 'stage'
+        run: exit 0
+
+      # If merging into main, ensure it is from stage
       - name: Fail if PR is not from stage
         if: github.base_ref == 'main' && github.head_ref != 'stage'
         run: |
