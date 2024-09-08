@@ -12,8 +12,8 @@ on:
       - main
 
 jobs:
-  restrict_merge:
-    name: Restrict merge
+  enforce_flow:
+    name: Enforce Flow
     runs-on: ubuntu-latest
     steps:
       - name: Fail if PR is not from stage

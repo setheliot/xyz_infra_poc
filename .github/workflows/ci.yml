@@ -11,7 +11,8 @@ on:
       - stage
 
 jobs:
-  build:
+  test:
+    name: Environment Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +23,6 @@ jobs:
     - name: Run tests
       run: | 
         echo "Test placeholder"
-        exit 1
 
     # Different environments (stage, prod, etc) would also have some tests
     # specific to that environment. Those should go in another workflow
