@@ -11,7 +11,8 @@ on:
       - stage
 
 jobs:
-  build:
+  test:
+    name: Environment Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +21,8 @@ jobs:
 
     # This is where tests can be added for each commit
     - name: Run tests
-      run: echo "Test placeholder"
+      run: | 
+        echo "Test placeholder"
 
     # Different environments (stage, prod, etc) would also have some tests
     # specific to that environment. Those should go in another workflow
