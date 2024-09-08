@@ -50,7 +50,7 @@ The following GitHub rules are enforced on branches `stage` (staging) and `main`
 - **Require approvals**: Requires at least one code review with resolution before merging.
 - **Require a pull request before merging**: Require all commits be made to a non-target branch and submitted via a pull request before they can be merged.
 - **Require stats checks to pass**:
-  - Checks **Enforce Stages** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
+  - Checks **Enforce Flow** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
   - Checks **Environment Tests** to ensure all environment tests pass on the  current environment.
 
 ## How to use

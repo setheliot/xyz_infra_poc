@@ -7,15 +7,23 @@ on:
   push:
     branches:
       - main
+      - stage
   pull_request:
     branches:
       - main
+      - stage
 
 jobs:
   enforce_flow:
     name: Enforce Flow
     runs-on: ubuntu-latest
     steps:
+      # This is where we would add a check for merging into stage if we add an environment before stage
+      - name: No need to check if merging into stage
+        if: github.base_ref == 'stage'
+        run: exit 0
+
+      # If merging into main, ensure it is from stage
       - name: Fail if PR is not from stage
         if: github.base_ref == 'main' && github.head_ref != 'stage'
         run: |
