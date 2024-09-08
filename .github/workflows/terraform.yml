@@ -72,6 +72,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # Supply an IAM User for AWS credentials.
+    # ToDo: update to use IAM Role (short lived credentials) instead
+    # Region is required here, but not used by Terraform - we specify Region in the Terraform provider 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
