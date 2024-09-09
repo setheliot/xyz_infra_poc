@@ -53,6 +53,8 @@ The following GitHub rules are enforced on branches `stage` (staging) and `main`
   - Checks **Enforce Flow** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
   - Checks **Environment Tests** to ensure all environment tests pass on the  current environment.
 
+The following [GitHub environments for deployment](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment) are defined: `stage`, `prod` 
+
 ## How to use
 1. Clone the repository.
 1. Create an IAM User in the AWS account you wish to use, with the necessary credentials (see [below](#future-plans)). Enter `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` values for that IAM User in GitHub secrets (Settings ➡ Secrets and variables ➡ Actions ➡ New repository secret)
@@ -61,7 +63,7 @@ The following GitHub rules are enforced on branches `stage` (staging) and `main`
    - Update the `bucket` name, `dynamodb_table` name, and AWS `region` values in [`providers.tf`](terraform/providers.tf) under the **Remote backend** setting.
 1. [optional] Update [`stage.tfvars`](terraform/environment/stage.tfvars) and [`main.tfvars`](terraform/environment/main.tfvars) to set the `aws_region` you want to use for each. These must be different than each other.
 1. The staging environment infrastructure will automatically build when you merge a pull request into branch `stage`
-1. The production environment infrastructure will automatically build when you merge a pull request from the staging environment into branch `prod`
+1. The production environment infrastructure will automatically build when you merge a pull request from the staging environment into branch `main`
 
 ## Future plans
 - Add other environment types to the pipeline, such as `test`
