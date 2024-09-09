@@ -1,4 +1,4 @@
-# Define enviornment stage name
+# Define environment stage name
 variable "env_name" {
   description = "unknown"
   type        = string
