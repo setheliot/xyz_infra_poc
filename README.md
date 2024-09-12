@@ -33,7 +33,7 @@ This code provisions several AWS resources, including:
 - Subnets and nodes are distributed across 3 availability zones
 
 **Cost** 
-- The rough estimate of the cost to run this infrastructure is about $140/month ([details here](https://calculator.aws/#/estimate?id=e44ce3d3abfb08aaed9e531aee28d831de131b99)).
+- The rough estimate of the cost to run this infrastructure is about $140/month ([details here](https://calculator.aws/#/estimate?id=e44ce3d3abfb08aaed9e531aee28d831de131b99)) _per environment_.
 - This cost will be affected much traffic is served, number of nodes, or whether you require Kubernetes extended support.
 
 ## CI/CD automation
