@@ -5,6 +5,8 @@ deploy an Elastic Kubernetes Cluster in Amazon Web Services (AWS).
 
 Terraform backend state is stored in an S3 bucket with state locking enabled via a DynamoDB table. This setup ensures that multiple people can work with the pipeline and deploy simultaneously without causing conflicts by locking the state during operations like plan and apply.
 
+Outputs from this infrastructure pipeline are persisted into the Terraform backend state so they can be read by he application pipeline ([xyz_app_poc](https://github.com/setheliot/xyz_app_poc)) that uses this infrastructure.
+
 The deployment is currently configured to deploy to a staging environment first (from the `stage` branch) and then to a production environment (from the `main` branch). Other environments can be added.
 
 | Environment type    | Short name | Branch     | Notes   |
@@ -40,7 +42,7 @@ This code provisions several AWS resources, including:
 
 The pipeline automation here currently only supports `stage` and `prod` environments.
 
-The AWS Regions for the each of these should be different. You configure the Regions to use in [`stage.tf`](terraform/environment/stage.tfvars) and  [`main.tf`](terraform/environment/main.tfvars) respectively.
+The AWS Regions for the each of these should be different. You configure the Regions to use in [`stage.tfvars`](terraform/environment/stage.tfvars) and  [`main.tfvars`](terraform/environment/main.tfvars) respectively.
 
 Developers create their own `dev` branches to work in (using their own accounts as environments) and then create pull requests from these into `stage`
 
@@ -53,11 +55,11 @@ Three GitHub actions workflows are defined:
 The following GitHub rules are enforced on branches `stage` (staging) and `main` (production)
 - **Require approvals**: Requires at least one code review with resolution before merging.
 - **Require a pull request before merging**: Require all commits be made to a non-target branch and submitted via a pull request before they can be merged.
-- **Require stats checks to pass**:
+- **Require status checks to pass**:
   - Checks **Enforce Flow** to ensure pull requests are only accepted from the designated previous environment in the pipeline, after all tests have passed on it.
   - Checks **Environment Tests** to ensure all environment tests pass on the  current environment.
 
-The following [GitHub environments for deployment](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment) are defined: `stage`, `prod` 
+The following [GitHub environments for deployment](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment) are defined: [`stage`](https://github.com/setheliot/xyz_infra_poc/deployments/stage), [`prod`](https://github.com/setheliot/xyz_infra_poc/deployments/prod)
 
 ## How to use
 1. Clone the repository.
@@ -66,11 +68,11 @@ The following [GitHub environments for deployment](https://docs.github.com/en/ac
    - For the DynamoDB table use `LockID` (type String) as the partition key.
    - Update the `bucket` name, `dynamodb_table` name, and AWS `region` values in [`providers.tf`](terraform/providers.tf) under the **Remote backend** setting.
 1. [optional] Update [`stage.tfvars`](terraform/environment/stage.tfvars) and [`main.tfvars`](terraform/environment/main.tfvars) to set the `aws_region` you want to use for each. These must be different than each other.
-1. The staging environment infrastructure will automatically build when you merge a pull request into branch `stage`
-1. The production environment infrastructure will automatically build when you merge a pull request from the staging environment into branch `main`
+1. The staging environment infrastructure will automatically build when you merge a pull request into branch `stage`.
+1. The production environment infrastructure will automatically build when you merge a pull request from branch `stage` into branch `main`.
 
 ## Future plans
-- Add other environment types to the pipeline, such as `test`
+- Add other environment stages to the pipeline, such as `test`
 
 - Environments deploy to separate AWS accounts instead of separate Regions in the same account
    - This provides better fault isolation between environments
@@ -81,7 +83,7 @@ The following [GitHub environments for deployment](https://docs.github.com/en/ac
    - AWS recommends using short lived credentials such as an IAM Role instead of IAM User (long lived credentials)
     - `aws-actions/configure-aws-credentials` can use IAM Roles if you setup a GitHub OIDC provider in the AWS account.
 
-- Provide a sample IAM Policy for AWS credentials that follows least privilege, The AWS credentials used here require the following permissions:
+- Provide a sample IAM Policy for AWS credentials that follows the principle of least-privilege. The AWS credentials used here require the following permissions:
    - EC2 actions: Required for creating and managing VPCs, subnets, NAT gateways, and security groups.
    - EKS actions: Needed for creating and managing the EKS cluster and node groups.
    - IAM actions: Needed for creating and managing IAM roles and attaching policies (like the EKS cluster role).
