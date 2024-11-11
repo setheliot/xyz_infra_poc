@@ -78,6 +78,11 @@ module "eks" {
       min_size     = 1
       max_size     = 5
       desired_size = 3
+
+      # Attach the AmazonDynamoDBFullAccess managed policy to the node role
+      iam_role_additional_policies = {
+        dynamodb_access = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+      }
     }
   }
 
@@ -92,3 +97,28 @@ module "eks" {
 }
 
 
+# DynamoDb table
+resource "aws_dynamodb_table" "guestbook" {
+  name           = "guestbook"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 2
+  write_capacity = 2
+  hash_key       = "GuestID"
+  range_key      = "Name"
+
+
+  attribute {
+    name = "GuestID"
+    type = "S"
+  }
+
+  attribute {
+    name = "Name"
+    type = "S"
+  }
+
+  tags = {
+    Environment = var.env_name
+    Terraform   = "true"
+  }
+}
