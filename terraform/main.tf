@@ -48,6 +48,10 @@ resource "aws_security_group" "eks_security_group" {
   }
 }
 
+locals {
+  iam_role_name = "eks-node-role-${var.eks_cluster_name}"
+}
+
 #
 # EKS Cluster
 module "eks" {
@@ -69,7 +73,7 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   eks_managed_node_groups = {
-    managed_nodes = {
+    xyz_managed_nodes = {
       name = "managed-eks-nodes"
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type      = "AL2023_x86_64_STANDARD"
@@ -79,12 +83,14 @@ module "eks" {
       max_size     = 5
       desired_size = 3
 
-      # Attach the AmazonDynamoDBFullAccess managed policy to the node role
+      # Attach the  managed policies for DynamoSB and SSM access by the nodes
+      iam_role_name = local.iam_role_name
       iam_role_additional_policies = {
         dynamodb_access = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-      }
-    }
-  }
+        ssm_access      = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      } # iam_role_additional_policies
+    }   # xyz_managed_nodes
+  }     # eks_managed_node_groups
 
   # Cluster access entry
   # To add the current caller identity as an administrator
@@ -96,6 +102,70 @@ module "eks" {
   }
 }
 
+# Create VPC endpoints (Private Links) for SSM Session Manager access to nodes
+resource "aws_security_group" "vpc_endpoint_sg" {
+  name   = "vpc-endpoint-sg"
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    description     = "Allow EKS Nodes to access VPC Endpoints"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eks_security_group.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Environment = var.env_name
+    Terraform   = "true"
+  }
+}
+
+resource "aws_vpc_endpoint" "private_link_ssm" {
+  vpc_id             = module.vpc.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type  = "Interface"
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids         = module.vpc.private_subnets
+
+  tags = {
+    Environment = var.env_name
+    Terraform   = "true"
+  }
+}
+
+resource "aws_vpc_endpoint" "private_link_ssmmessages" {
+  vpc_id             = module.vpc.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type  = "Interface"
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids         = module.vpc.private_subnets
+
+  tags = {
+    Environment = var.env_name
+    Terraform   = "true"
+  }
+}
+
+resource "aws_vpc_endpoint" "private_link_ec2messages" {
+  vpc_id             = module.vpc.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type  = "Interface"
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids         = module.vpc.private_subnets
+
+  tags = {
+    Environment = var.env_name
+    Terraform   = "true"
+  }
+}
 
 # DynamoDb table
 resource "aws_vpc_endpoint" "private_link_dynamodb" {
