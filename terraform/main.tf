@@ -111,13 +111,14 @@ resource "aws_vpc_endpoint" "private_link_dynamodb" {
 }
 
 resource "aws_dynamodb_table" "guestbook" {
-  name           = "guestbook"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 2
-  write_capacity = 2
-  hash_key       = "GuestID"
-  range_key      = "Name"
-
+  name             = "guestbook"
+  billing_mode     = "PROVISIONED"
+  read_capacity    = 2
+  write_capacity   = 2
+  hash_key         = "GuestID"
+  range_key        = "Name"
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
 
   attribute {
     name = "GuestID"
