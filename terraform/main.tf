@@ -102,29 +102,6 @@ module "eks" {
   }
 }
 
-# Inline policy to allow SSM Session Manager access
-resource "aws_iam_role_policy" "ssm_session_manager_policy" {
-  name = "ssm-session-manager-policy"
-  role = local.iam_role_name
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ssmmessages:CreateControlChannel",
-          "ssmmessages:CreateDataChannel",
-          "ssmmessages:OpenControlChannel",
-          "ssmmessages:OpenDataChannel",
-          "s3:GetEncryptionConfiguration"
-        ],
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-
 # Create VPC endpoints (Private Links) for SSM Session Manager access to nodes
 resource "aws_security_group" "vpc_endpoint_sg" {
   name   = "vpc-endpoint-sg"
