@@ -14,7 +14,7 @@ provider "aws" {
 # Remote backend for storing Terraform state
 terraform {
   backend "s3" {
-    bucket         = "seliot-terraform-state-bucket"
+    bucket         = "seliot-terraform-state-bucket-arpio1"
     key            = "xyz_infra_poc/terraform.tfstate"
     dynamodb_table = "terraform-lock"
     region         = "us-east-1"
