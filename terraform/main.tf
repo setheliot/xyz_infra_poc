@@ -83,7 +83,19 @@ module "eks" {
       max_size     = 5
       desired_size = 3
 
-      # Attach the  managed policies for DynamoSB and SSM access by the nodes
+      # Setup a custom launch teplate for the managed nodes
+      # Notes these settings are the same as the defaults
+      use_custom_launch_template = true
+      create_launch_template     = true
+
+      # Enable Instance Metadata Service (IMDS)
+      metadata_options = {
+        http_endpoint               = "enabled"
+        http_tokens                 = "required"
+        http_put_response_hop_limit = 2
+      }
+
+      # Attach the managed policies for DynamoDB and SSM access by the nodes
       iam_role_name = local.iam_role_name
       iam_role_additional_policies = {
         dynamodb_access = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
