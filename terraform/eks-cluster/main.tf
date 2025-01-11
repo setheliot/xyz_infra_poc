@@ -86,10 +86,10 @@ module "eks" {
 
   eks_managed_node_groups = {
     xyz_managed_nodes = {
-      name = "managed-eks-nodes"
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type      = "AL2023_x86_64_STANDARD"
-      instance_type = var.instance_type
+      name                           = "managed-eks-nodes"
+      ami_type                       = "AL2023_x86_64_STANDARD"
+      use_latest_ami_release_version = true
+      instance_type                  = var.instance_type
 
       min_size     = 1
       max_size     = 5
