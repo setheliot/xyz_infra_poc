@@ -35,6 +35,10 @@ resource "kubernetes_service_account" "alb_controller" {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
   }
+
+  depends_on = [
+    module.eks
+  ]
 }
 
 
@@ -80,4 +84,8 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "vpcId"
     value = module.vpc.vpc_id
   }
+
+  depends_on = [
+    module.eks
+  ]
 }
