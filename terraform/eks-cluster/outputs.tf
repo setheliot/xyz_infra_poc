@@ -20,6 +20,12 @@ output "eks_cluster_arn" {
   value       = module.eks.cluster_arn
 }
 
+output "eks_node_iam_role_name" {
+  description = "EKS Nodes IAM Role Name"
+  value       = module.eks.eks_managed_node_groups["xyz_managed_nodes"].iam_role_name
+}
+
+
 # Output the AWS Region
 output "aws_region" {
   description = "AWS region"
