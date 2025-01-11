@@ -17,15 +17,15 @@ module "vpc" {
   enable_dns_hostnames = true
 
   public_subnet_tags = {
-    "kubernetes.io/role/elb"                            = "1"  # ✅ Required for ALB
-    "kubernetes.io/cluster/${var.eks_cluster_name}"      = "owned"  # Links subnet to EKS
-    "Name"                                               = "${var.vpc_name}-public-subnet"
+    "kubernetes.io/role/elb"                        = "1"     # ✅ Required for ALB
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned" # Links subnet to EKS
+    "Name"                                          = "${var.vpc_name}-public-subnet"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb"                   = "1"  # For internal load balancers
-    "kubernetes.io/cluster/${var.eks_cluster_name}"     = "owned"
-    "Name"                                              = "${var.vpc_name}-private-subnet"
+    "kubernetes.io/role/internal-elb"               = "1" # For internal load balancers
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned"
+    "Name"                                          = "${var.vpc_name}-private-subnet"
   }
 
   tags = {

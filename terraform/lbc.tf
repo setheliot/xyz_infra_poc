@@ -4,7 +4,7 @@
 resource "aws_iam_policy" "alb_controller_custom" {
   name        = "AWSLoadBalancerControllerIAMPolicy"
   description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.module}/policies/iam_policy.json")  # Path to your downloaded file
+  policy      = file("${path.module}/policies/iam_policy.json") # Path to your downloaded file
 }
 
 resource "aws_iam_role_policy_attachment" "alb_policy_node" {
