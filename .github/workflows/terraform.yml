@@ -79,11 +79,11 @@ jobs:
 
       - name: Terraform Plan
         if: steps.check_policy.outputs.exists == 'false'
-        run: terraform plan -var-file=environment/${{ github.ref_name }}.tfvars
+        run: terraform plan
 
       - name: Terraform Apply
         if: github.event_name == 'push' && steps.check_policy.outputs.exists == 'false'
-        run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars
+        run: terraform apply -auto-approve
 
 
 
