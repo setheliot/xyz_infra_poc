@@ -17,6 +17,7 @@ permissions:
 
 jobs:
 
+  #
   # Job 1: Create IAM policy, if it does not already exist
   terraform-iam-policy:
     name: 'Terraform: IAM resources (${{ github.ref_name }})'
@@ -43,33 +44,73 @@ jobs:
           aws-region: us-east-1
 
       # Check if AWSLoadBalancerControllerIAMPolicy exists. Only run the subsequent steps if it does not already exist    
-      - name: Check for AWSLoadBalancerControllerIAMPolicy
-        run: aws iam list-policies --scope Local --query "Policies[?PolicyName=='AWSLoadBalancerControllerIAMPolicy']" --output text | wc -l
+# Job 1: Create IAM policy, if it does not already exist
+terraform-iam-policy:
+  name: 'Terraform: IAM resources (${{ github.ref_name }})'
+  runs-on: ubuntu-latest
+  if: github.ref_name == 'main' || github.ref_name == 'stage'
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+  environment: ${{ github.ref_name == 'stage' && 'stage' || github.ref_name == 'main' && 'prod' || 'unknown' }}
 
-      - name: Terraform Init
-        run: terraform init
+  defaults:
+    run:
+      shell: bash
+      working-directory: ./terraform/iam
 
-      - name: Terraform Format
-        run: terraform fmt -check -recursive
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Ensure workspace exists
-        run: |
-          if ! terraform workspace list | grep -q "${{ github.ref_name }}"; then
-            terraform workspace new "${{ github.ref_name }}"
-          fi
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
 
-      - name: Select Terraform Workspace
-        run: terraform workspace select ${{ github.ref_name }}
+    # Check if AWSLoadBalancerControllerIAMPolicy exists and set an output
+    - name: Check for AWSLoadBalancerControllerIAMPolicy
+      id: check_policy
+      run: |
+        if aws iam get-policy --policy-arn arn:aws:iam::$(aws sts get-caller-identity --query "Account" --output text):policy/AWSLoadBalancerControllerIAMPolicy > /dev/null 2>&1; then
+          echo "Policy exists."
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "Policy does not exist."
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
 
-      - name: Terraform Plan
-        run: terraform plan -var-file=environment/${{ github.ref_name }}.tfvars
+    - name: Setup Terraform
+      if: steps.check_policy.outputs.exists == 'false'
+      uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Apply
-        if: github.event_name == 'push'
-        run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars
+    - name: Terraform Init
+      if: steps.check_policy.outputs.exists == 'false'
+      run: terraform init
+
+    - name: Terraform Format
+      if: steps.check_policy.outputs.exists == 'false'
+      run: terraform fmt -check -recursive
+
+    - name: Ensure workspace exists
+      if: steps.check_policy.outputs.exists == 'false'
+      run: |
+        if ! terraform workspace list | grep -q "${{ github.ref_name }}"; then
+          terraform workspace new "${{ github.ref_name }}"
+        fi
+
+    - name: Select Terraform Workspace
+      if: steps.check_policy.outputs.exists == 'false'
+      run: terraform workspace select ${{ github.ref_name }}
+
+    - name: Terraform Plan
+      if: steps.check_policy.outputs.exists == 'false'
+      run: terraform plan -var-file=environment/${{ github.ref_name }}.tfvars
+
+    - name: Terraform Apply
+      if: github.event_name == 'push' && steps.check_policy.outputs.exists == 'false'
+      run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars
+
 
 
   # Job 2: Deploy EKS Cluster

@@ -1,6 +1,7 @@
 
 # Retrieve the LBC IAM policy
 # This should have already been created once per account by the iam modules
+# If it does not exist, will fail with timeout after 2 minutes
 data "aws_iam_policy" "lbc_policy" {
   name = "AWSLoadBalancerControllerIAMPolicy"
 }
