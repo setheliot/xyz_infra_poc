@@ -16,6 +16,18 @@ module "vpc" {
   single_nat_gateway   = true
   enable_dns_hostnames = true
 
+  public_subnet_tags = {
+    "kubernetes.io/role/elb"                        = "1"     # ✅ Required for ALB
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned" # Links subnet to EKS
+    "Name"                                          = "${var.vpc_name}-public-subnet"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb"               = "1" # For internal load balancers
+    "kubernetes.io/cluster/${var.eks_cluster_name}" = "owned"
+    "Name"                                          = "${var.vpc_name}-private-subnet"
+  }
+
   tags = {
     Terraform   = "true"
     Environment = var.env_name
@@ -74,10 +86,10 @@ module "eks" {
 
   eks_managed_node_groups = {
     xyz_managed_nodes = {
-      name = "managed-eks-nodes"
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type      = "AL2023_x86_64_STANDARD"
-      instance_type = var.instance_type
+      name                           = "managed-eks-nodes"
+      ami_type                       = "AL2023_x86_64_STANDARD"
+      use_latest_ami_release_version = true
+      instance_type                  = var.instance_type
 
       min_size     = 1
       max_size     = 5
