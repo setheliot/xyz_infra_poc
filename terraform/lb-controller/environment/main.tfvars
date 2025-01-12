@@ -1,1 +1,1 @@
-workspace        = "main"
+workspace = "main"

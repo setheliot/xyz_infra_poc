@@ -1,1 +1,1 @@
-workspace        = "stage"
+workspace = "stage"
