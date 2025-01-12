@@ -8,8 +8,8 @@ data "aws_iam_policy" "lbc_policy" {
 
 # Attach the policy (existing or newly created) to the node IAM role
 resource "aws_iam_role_policy_attachment" "alb_policy_node" {
-  policy_arn = data.aws_iam_policy.lbc_policy.arn 
-  role = local.eks_node_iam_role_name
+  policy_arn = data.aws_iam_policy.lbc_policy.arn
+  role       = local.eks_node_iam_role_name
 }
 
 #

@@ -25,11 +25,11 @@ data "terraform_remote_state" "infra" {
 }
 
 locals {
-  region                             = data.terraform_remote_state.infra.outputs.aws_region
-  cluster_name                       = data.terraform_remote_state.infra.outputs.eks_cluster_name
-  cluster_endpoint                   = data.terraform_remote_state.infra.outputs.eks_cluster_endpoint
-  vpc_id                             = data.terraform_remote_state.infra.outputs.vpc_id
-  eks_node_iam_role_name             = data.terraform_remote_state.infra.outputs.eks_node_iam_role_name
+  region                 = data.terraform_remote_state.infra.outputs.aws_region
+  cluster_name           = data.terraform_remote_state.infra.outputs.eks_cluster_name
+  cluster_endpoint       = data.terraform_remote_state.infra.outputs.eks_cluster_endpoint
+  vpc_id                 = data.terraform_remote_state.infra.outputs.vpc_id
+  eks_node_iam_role_name = data.terraform_remote_state.infra.outputs.eks_node_iam_role_name
 }
 
 provider "aws" {

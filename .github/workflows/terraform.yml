@@ -142,7 +142,9 @@ jobs:
   terraform-lb-controller:
     name: 'Terraform: Load Balancer Controller (${{ github.ref_name }})'
     runs-on: ubuntu-latest
-    needs: terraform-eks-cluster  # Waits for EKS deployment to complete
+    needs: 
+      - terraform-eks-cluster  # Waits for EKS deployment
+      - terraform-iam-policy   # Waits for IAM policy creation
     if: github.ref_name == 'main' || github.ref_name == 'stage'
 
     environment: ${{ github.ref_name == 'stage' && 'stage' || github.ref_name == 'main' && 'prod' || 'unknown' }}
