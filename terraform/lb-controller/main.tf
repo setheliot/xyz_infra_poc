@@ -1,18 +1,16 @@
 
-
-#
-# Give EKS nodes necessary permissions to run the LBC
-resource "aws_iam_policy" "alb_controller_custom" {
-  name        = "AWSLoadBalancerControllerIAMPolicy"
-  description = "IAM policy for AWS Load Balancer Controller"
-  policy      = file("${path.module}/policies/iam_policy.json") # Path to your downloaded file
+# Retrieve the LBC IAM policy
+# This should have already been created once per account by the iam modules
+# If it does not exist, will fail with timeout after 2 minutes
+data "aws_iam_policy" "lbc_policy" {
+  name = "AWSLoadBalancerControllerIAMPolicy"
 }
 
+# Attach the policy (existing or newly created) to the node IAM role
 resource "aws_iam_role_policy_attachment" "alb_policy_node" {
-  policy_arn = aws_iam_policy.alb_controller_custom.arn
-  role       = data.terraform_remote_state.infra.outputs.eks_node_iam_role_name
+  policy_arn = data.aws_iam_policy.lbc_policy.arn
+  role       = local.eks_node_iam_role_name
 }
-
 
 #
 # Create the K8s Service Account that will be used by Helm
