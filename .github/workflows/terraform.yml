@@ -16,7 +16,63 @@ permissions:
   contents: read
 
 jobs:
-  # First Job: Deploy EKS Cluster
+
+  # Job 1: Create IAM policy, if it does not already exist
+  terraform-iam-policy:
+    name: 'Terraform: IAM resources (${{ github.ref_name }})'
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main' || github.ref_name == 'stage'
+
+    environment: ${{ github.ref_name == 'stage' && 'stage' || github.ref_name == 'main' && 'prod' || 'unknown' }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform/iam
+
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Check if AWSLoadBalancerControllerIAMPolicy exists. Only run the subsequent steps if it does not already exist    
+      - name: Check for AWSLoadBalancerControllerIAMPolicy
+        run: aws iam list-policies --scope Local --query "Policies[?PolicyName=='AWSLoadBalancerControllerIAMPolicy']" --output text | wc -l
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+
+      - name: Ensure workspace exists
+        run: |
+          if ! terraform workspace list | grep -q "${{ github.ref_name }}"; then
+            terraform workspace new "${{ github.ref_name }}"
+          fi
+
+      - name: Select Terraform Workspace
+        run: terraform workspace select ${{ github.ref_name }}
+
+      - name: Terraform Plan
+        run: terraform plan -var-file=environment/${{ github.ref_name }}.tfvars
+
+      - name: Terraform Apply
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars
+
+
+  # Job 2: Deploy EKS Cluster
   terraform-eks-cluster:
     name: 'Terraform: EKS Cluster (${{ github.ref_name }})'
     runs-on: ubuntu-latest
@@ -65,7 +121,7 @@ jobs:
         if: github.event_name == 'push'
         run: terraform apply -auto-approve -var-file=environment/${{ github.ref_name }}.tfvars
 
-  # Second Job: Deploy Load Balancer Controller
+  # Job 3: Deploy Load Balancer Controller
   # Runs sequentially because we needed the first job to create the cluster IAM access entry first
   # so we can deploy to the Kubernetes cluster
   terraform-lb-controller:
