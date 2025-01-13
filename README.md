@@ -31,10 +31,17 @@ This code provisions several AWS resources, including:
   -  `min_size = 1` and `max_size = 5` - this can be adjusted in [main.yml](terraform/main.tf)
 - Security Group for the cluster nodes
 - Subnets and nodes are distributed across 3 availability zones
+- DynamoDB table
+- VPC Endpoint to the DynamoDB service
+- It also attaches managed IAM policies to the EKS node role
+
+After the EKS cluster is deployed, this code then installs AWS Load Balanver Controller using Helm. This can be used by applicatins to create elastic load balancers (ALB or NLB).
+
 
 **Cost** 
-- The rough estimate of the cost to run this infrastructure is about $140/month ([details here](https://calculator.aws/#/estimate?id=e44ce3d3abfb08aaed9e531aee28d831de131b99)) _per environment_.
-- This cost will be affected much traffic is served, number of nodes, or whether you require Kubernetes extended support.
+- The rough estimate of the cost to run this infrastructure is about $200/month ([details here](https://calculator.aws/#/estimate?id=e44ce3d3abfb08aaed9e531aee28d831de131b99)) _per environment_.
+- This cost will be affected much traffic is served, number of nodes, DynamoDB requiests, or whether you require Kubernetes extended support.
+- A significant cost of about $60 is for three VPC endpoint Private Links across all three AZs (it is about $21 per PL for three AZs). These are used for SSM Session Manager access to nodes, and are optional.
 
 ## CI/CD automation
 
@@ -94,4 +101,4 @@ The following [GitHub environments for deployment](https://docs.github.com/en/ac
    - In this current implementation we make use of multiple `.tfvars` files and [Terraform workspaces](https://developer.hashicorp.com/terraform/cli/workspaces).
    - However there exists built-for-purpose systems like [Terragrunt](https://terragrunt.gruntwork.io/) for this.
 
-- Supply an AWS CloudFormation template to create S3 bucket and DynamoDB table for Terraform backend state
+- Supply an the Terraform configuration to create S3 bucket and DynamoDB table for Terraform backend state
