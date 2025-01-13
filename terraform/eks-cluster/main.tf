@@ -34,32 +34,6 @@ module "vpc" {
   }
 }
 
-#
-# Security Group for EKS Cluster
-resource "aws_security_group" "eks_security_group" {
-  name   = "eks_security_group_${var.env_name}"
-  vpc_id = module.vpc.vpc_id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Adjust based on security needs
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Environment = var.env_name
-    Terraform   = "true"
-  }
-}
-
 locals {
   iam_role_name = "eks-node-role-${var.eks_cluster_name}"
 }
@@ -126,6 +100,10 @@ module "eks" {
   }
 }
 
+locals {
+  node_security_group_id = module.eks.node_security_group_id
+}
+
 # Create VPC endpoints (Private Links) for SSM Session Manager access to nodes
 resource "aws_security_group" "vpc_endpoint_sg" {
   name   = "vpc-endpoint-sg"
@@ -136,7 +114,7 @@ resource "aws_security_group" "vpc_endpoint_sg" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.eks_security_group.id]
+    security_groups = [local.node_security_group_id]
   }
 
   egress {
@@ -153,11 +131,12 @@ resource "aws_security_group" "vpc_endpoint_sg" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ssm" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ssm"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
+  private_dns_enabled = true
 
   tags = {
     Environment = var.env_name
@@ -166,11 +145,12 @@ resource "aws_vpc_endpoint" "private_link_ssm" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ssmmessages" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ssmmessages"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
+  private_dns_enabled = true
 
   tags = {
     Environment = var.env_name
@@ -179,11 +159,12 @@ resource "aws_vpc_endpoint" "private_link_ssmmessages" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ec2messages" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ec2messages"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
+  private_dns_enabled = true
 
   tags = {
     Environment = var.env_name
