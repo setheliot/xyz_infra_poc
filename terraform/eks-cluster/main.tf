@@ -131,11 +131,11 @@ resource "aws_security_group" "vpc_endpoint_sg" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ssm" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ssm"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
   private_dns_enabled = true
 
   tags = {
@@ -145,11 +145,11 @@ resource "aws_vpc_endpoint" "private_link_ssm" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ssmmessages" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ssmmessages"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
   private_dns_enabled = true
 
   tags = {
@@ -159,11 +159,11 @@ resource "aws_vpc_endpoint" "private_link_ssmmessages" {
 }
 
 resource "aws_vpc_endpoint" "private_link_ec2messages" {
-  vpc_id             = module.vpc.vpc_id
-  service_name       = "com.amazonaws.${var.aws_region}.ec2messages"
-  vpc_endpoint_type  = "Interface"
-  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoint_sg.id]
+  subnet_ids          = module.vpc.private_subnets
   private_dns_enabled = true
 
   tags = {
