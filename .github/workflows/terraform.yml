@@ -139,7 +139,7 @@ jobs:
   # Job 3: Deploy Load Balancer Controller
   # Runs sequentially because we needed the first job to create the cluster IAM access entry first
   # so we can deploy to the Kubernetes cluster
-  terraform-lb-controller:
+  terraform-eks-components:
     name: 'Terraform: Load Balancer Controller (${{ github.ref_name }})'
     runs-on: ubuntu-latest
     needs: 
@@ -152,7 +152,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./terraform/lb-controller
+        working-directory: ./terraform/eks-components
 
     steps:
       - name: Checkout

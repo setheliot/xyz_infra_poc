@@ -24,20 +24,21 @@ data "terraform_remote_state" "infra" {
   }
 }
 
+#
+# Get the AWS Region and cluster info from the infrastructure remote backend state
 locals {
   region                 = data.terraform_remote_state.infra.outputs.aws_region
   cluster_name           = data.terraform_remote_state.infra.outputs.eks_cluster_name
   cluster_endpoint       = data.terraform_remote_state.infra.outputs.eks_cluster_endpoint
   vpc_id                 = data.terraform_remote_state.infra.outputs.vpc_id
-  eks_node_iam_role_name = data.terraform_remote_state.infra.outputs.eks_node_iam_role_name
+  eks_node_iam_role_name = data.terraform_remote_state.infra.outputs.eks_node_iam_role_name #also can get this from Kubernetes provider
 }
 
 provider "aws" {
   region = local.region
 }
 
-#
-# Get the AWS Region and cluster info from the infrastructure remote backend state
+# EKS Cluster Data Source
 data "aws_eks_cluster" "cluster" {
   name = data.terraform_remote_state.infra.outputs.eks_cluster_name
 }
