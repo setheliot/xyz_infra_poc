@@ -31,6 +31,7 @@ This code provisions several AWS resources, including:
   -  `min_size = 1` and `max_size = 5` - this can be adjusted in [main.yml](terraform/main.tf)
 - Security Group for the cluster nodes
 - Subnets and nodes are distributed across 3 availability zones
+- A `PersistentVolumeClaim` (PVC) configured with a `StorageClass` that provisions an AWS EBS volume, enabling a pod to use it as persistent storage.
 - DynamoDB table
 - VPC Endpoint to the DynamoDB service
 - It also attaches managed IAM policies to the EKS node role
