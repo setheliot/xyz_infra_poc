@@ -1,3 +1,5 @@
+#
+# AWS Load Balancer Controller
 
 # Retrieve the LBC IAM policy
 # This should have already been created once per account by the iam modules
@@ -19,10 +21,7 @@ resource "kubernetes_service_account" "alb_controller" {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
   }
-
 }
-
-
 
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
@@ -54,5 +53,53 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "vpcId"
     value = local.vpc_id
   }
+}
 
+
+#
+# EBS Persistent volume
+# (This creates the PVC - the volume gets created when the pod attempts to mount it)
+
+# Retrieve the CSI driver  policy
+data "aws_iam_policy" "csi_policy" {
+  name = "AmazonEBSCSIDriverPolicy"
+}
+
+# Attach the policy to the cluster IAM role
+resource "aws_iam_role_policy_attachment" "csi_policy_attachment" {
+  policy_arn = data.aws_iam_policy.csi_policy.arn
+  role       = local.eks_node_iam_role_name
+}
+
+resource "kubernetes_storage_class" "ebs" {
+  metadata {
+    name = "ebs-storage-class"
+  }
+
+  storage_provisioner = "ebs.csi.aws.com"
+  reclaim_policy      = "Retain"
+  volume_binding_mode = "WaitForFirstConsumer"
+  parameters = {
+    type   = "gp3"
+    fsType = "ext4"
+  }
+}
+
+resource "kubernetes_persistent_volume_claim_v1" "ebs_pvc" {
+  metadata {
+    name = "ebs-volume-claim"
+  }
+
+  spec {
+    access_modes = ["ReadWriteOnce"]
+
+    resources {
+      requests = {
+        storage = "1Gi"
+      }
+    }
+
+    storage_class_name = "ebs-storage-class"
+  }
+  wait_until_bound = false
 }

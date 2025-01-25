@@ -45,14 +45,15 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.eks_cluster_name
-  cluster_version = "1.31"
+  cluster_version = "1.32"
 
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = false
 
   # coredns, kube-proxy, and vpc-cni are automatically installed by EKS         
   cluster_addons = {
-    eks-pod-identity-agent = {}
+    eks-pod-identity-agent = {},
+    aws-ebs-csi-driver     = {}
   }
 
   vpc_id     = module.vpc.vpc_id
