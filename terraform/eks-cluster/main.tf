@@ -76,7 +76,7 @@ module "eks" {
       max_size     = 5
       desired_size = 3
 
-      # Setup a custom launch teplate for the managed nodes
+      # Setup a custom launch template for the managed nodes
       # Notes these settings are the same as the defaults
       use_custom_launch_template = true
       create_launch_template     = true
