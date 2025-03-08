@@ -70,7 +70,7 @@ module "eks" {
       name                           = "managed-eks-nodes"
       ami_type                       = "AL2023_x86_64_STANDARD"
       use_latest_ami_release_version = true
-      instance_type                  = var.instance_type
+      instance_types                 = [var.instance_type]
 
       min_size     = 1
       max_size     = 5
